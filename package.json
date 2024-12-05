@@ -1,0 +1,73 @@
+{
+  "name": "gamezip-dupe-checker",
+  "displayName": "Gamezip Dupe Checker",
+  "version": "1.0.0",
+  "author": "dot-mike",
+  "launcherVersion": "9.1.0",
+  "description": "Search for duplicate gamezips using FPFSS. Word of warning: This not take into account submissions, only games in FP with a gamezip!",
+  "main": "./dist/ext.js",
+  "scripts": {
+    "package": "gulp",
+    "build": "webpack --mode development",
+    "watch": "webpack --mode development --watch"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@types/flashpoint-launcher": "^10.1.9",
+    "@types/node": "^22.10.0",
+    "gulp": "^4.0.2",
+    "gulp-cli": "^3.0.0",
+    "gulp-zip": "^5.1.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.7.2",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "contributes": {
+    "contextButtons": [
+      {
+        "context": "curation",
+        "name": "Search using launchCommand",
+        "command": "gamezip-dupe-checker.search-launch"
+      },
+      {
+        "context": "curation",
+        "name": "Select A file",
+        "command": "gamezip-dupe-checker.search-file"
+      },
+      {
+        "context": "curation",
+        "name": "Search using directory",
+        "command": "gamezip-dupe-checker.search-path"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Gamezip Dupe Checker",
+        "properties": {
+          "gamezip-dupe-checker.cookie": {
+            "title": "FPFSS Cookie",
+            "type": "string",
+            "default": "",
+            "description": "The cookie to use for FPFSS requests"
+          },
+          "gamezip-dupe-checker.hashtype": {
+            "title": "Hash Type to use",
+            "type": "string",
+            "enum": [
+              "md5",
+              "sha1",
+              "sha256"
+            ],
+            "default": "md5",
+            "description": "The hash type to use when searching for duplicate"
+          }
+        }
+      }
+    ]
+  },
+  "dependencies": {
+    "electron": "^33.2.1",
+    "node-fetch": "^3.3.2"
+  }
+}

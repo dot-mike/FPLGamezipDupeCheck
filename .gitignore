@@ -1,0 +1,7 @@
+/dist
+/node_modules
+/package
+/*.zip
+extension.fplx
+config.json
+package-lock.json
