@@ -12,6 +12,8 @@ jobs:
   build:
     name: Build and Upload Artifact
     runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.rename_artifact.outputs.artifact_name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,7 +65,7 @@ jobs:
       - uses: actions/download-artifact@v4
         if: ${{ !env.ACT }}
         with:
-          name: extension
+          name: ${{ needs.build.outputs.artifact_name }}
 
       - name: Extract changelog entry
         id: changelog
