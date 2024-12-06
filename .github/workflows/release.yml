@@ -75,13 +75,14 @@ jobs:
           awk "/## \\[${tagName}\\]/ {flag=1; next} /^## \\[/ {flag=0} flag {print}" CHANGELOG.md > extracted_changelog.md
           echo "Extracted changelog:"
           cat extracted_changelog.md
+          echo "tagName=${tagName}" >> $GITHUB_OUTPUT
 
       - name: Release
         if: ${{ !env.ACT }}
         uses: softprops/action-gh-release@v2
         with:
-          name: "Release ${{ github.ref }}"
+          name: "Release ${{ steps.changelog.outputs.tagName }}"
+          tag_name: "v${{ steps.changelog.outputs.tagName }}"
           token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: ${{ github.ref }}
           body_path: extracted_changelog.md
           files: extension-*.zip
