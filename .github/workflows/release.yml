@@ -1,0 +1,84 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'refs/tags/v*'
+
+jobs:
+  build:
+    name: Build and Upload Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build
+        run: npm run package
+
+      - name: Rename artifact
+        id: rename_artifact
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            tagName=${GITHUB_REF#refs/tags/}
+            echo "Renaming artifact to extension-$tagName.zip"
+            mv extension.fplx extension-$tagName.zip
+            echo "artifact_name=extension-$tagName" >> $GITHUB_OUTPUT
+            echo "artifact_path=extension-$tagName.zip" >> $GITHUB_OUTPUT
+          else
+            commitHash=$(git rev-parse --short "$GITHUB_SHA")
+            echo "Renaming artifact to extension-$commitHash.zip"
+            mv extension.fplx extension-$commitHash.zip
+            echo "artifact_name=extension-$commitHash" >> $GITHUB_OUTPUT
+            echo "artifact_path=extension-$commitHash.zip" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload release artifact
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.rename_artifact.outputs.artifact_name }}
+          path: ${{ steps.rename_artifact.outputs.artifact_path }}
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        if: ${{ !env.ACT }}
+        with:
+          name: extension
+
+      - name: Extract changelog entry
+        id: changelog
+        run: |
+          tagName=${GITHUB_REF#refs/tags/}
+          tagName=${tagName#v}
+          awk "/## \\[${tagName}\\]/ {flag=1; next} /^## \\[/ {flag=0} flag {print}" CHANGELOG.md > extracted_changelog.md
+          echo "Extracted changelog:"
+          cat extracted_changelog.md
+
+      - name: Release
+        if: ${{ !env.ACT }}
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Release ${{ github.ref }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release_name: ${{ github.ref }}
+          body_path: extracted_changelog.md
+          files: extension-*.zip
