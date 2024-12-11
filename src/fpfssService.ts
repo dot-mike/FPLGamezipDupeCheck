@@ -19,21 +19,22 @@ export interface FPFSSResponse {
 
 export class FPFSSService {
     private baseUrl: string;
-    private authCookie: string;
+    private headers: { 'Content-Type': string; 'Authorization': string };
 
-    constructor(baseUrl: string, authCookie: string) {
+    constructor(baseUrl: string, bearerToken: string) {
         this.baseUrl = baseUrl + (baseUrl.endsWith('/api/') ? '' : '/api/');
-        this.authCookie = authCookie;
+        this.headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${bearerToken}`
+        };
     }
 
     public async lookupHash(hash: string, hashType: 'MD5' | 'SHA1' | 'SHA256'): Promise<FPFSSResponse> {
+        console.log('lookupHash', hash, hashType);
         const url = `${this.baseUrl}index/hash/${hash}`;
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cookie': `login=${this.authCookie}`
-            }
+            headers: this.headers
         });
 
         if (!response.ok) {
@@ -53,10 +54,7 @@ export class FPFSSService {
         const url = `${this.baseUrl}index/path`;
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cookie': `login=${this.authCookie}`
-            },
+            headers: this.headers,
             body: JSON.stringify({ path })
         });
 

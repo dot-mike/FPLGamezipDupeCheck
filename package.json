@@ -1,10 +1,10 @@
 {
   "name": "gamezip-dupe-checker",
   "displayName": "Gamezip Dupe Checker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "dot-mike",
-  "launcherVersion": "9.1.0",
-  "description": "Search for duplicate gamezips using FPFSS. Word of warning: This not take into account submissions, only games in FP with a gamezip!",
+  "launcherVersion": "13.1.0",
+  "description": "Search for duplicate gamezips using FPFSS. It will only search for games that have a gamezip in Flashpoint, not submissions.",
   "main": "./dist/ext.js",
   "scripts": {
     "package": "gulp",
@@ -45,12 +45,6 @@
       {
         "title": "Gamezip Dupe Checker",
         "properties": {
-          "gamezip-dupe-checker.cookie": {
-            "title": "FPFSS Cookie",
-            "type": "string",
-            "default": "",
-            "description": "The cookie to use for FPFSS requests"
-          },
           "gamezip-dupe-checker.hashtype": {
             "title": "Hash Type to use",
             "type": "string",

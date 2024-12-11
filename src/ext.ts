@@ -87,9 +87,15 @@ export async function activate(context: flashpoint.ExtensionContext) {
         const selectedFileBasename = selectedFile.replace(/.*content\\/, '');
     
         const fpfssBaseUrl = flashpoint.getPreferences()['fpfssBaseUrl'];
-        const cookie = flashpoint.getExtConfigValue('gamezip-dupe-checker.cookie');
 
-        const fpfss = new fpfssService.FPFSSService(fpfssBaseUrl, cookie);
+        // @ts-ignore
+        const fpfssToken = await flashpoint.fpfss.getAccessToken();
+
+        if (!fpfssToken) {
+            return;
+        }
+
+        const fpfss = new fpfssService.FPFSSService(fpfssBaseUrl, fpfssToken);
         const response = await fpfss.lookupPath(selectedFileBasename);
 
         flashpoint.log.info(JSON.stringify(response));
@@ -104,7 +110,7 @@ export async function activate(context: flashpoint.ExtensionContext) {
                 `  Game URL: ${fpfssUrl}`;
         }).join('\n-----------------------------\n');
         const message = `Found ${response.data.length} duplicates:\n\n${formattedDuplicates}`;
-        const v = await showMessageBox('Info', message, ['OK', 'Write to log']);
+        const v = await showMessageBox('Info', message, ['OK', 'Copy to log']);
         if (v === 1) {
             flashpoint.log.info(message);
         }
@@ -151,15 +157,16 @@ async function getSelectedFile(dialogOptions: flashpoint.ShowOpenDialogOptions, 
 }
 
 async function handleHashLookup(hash: string, hashType: 'MD5' | 'SHA1' | 'SHA256'): Promise<void> {
-    const cookie = flashpoint.getExtConfigValue('gamezip-dupe-checker.cookie');
-    if (!cookie) {
-        await showMessageBox('Error', 'fpfss cookie is not set!');
+    const fpfssBaseUrl = flashpoint.getPreferences()['fpfssBaseUrl'];
+
+    // @ts-ignore
+    const fpfssToken = await flashpoint.fpfss.getAccessToken();
+
+    if (!fpfssToken) {
         return;
     }
 
-    const fpfssBaseUrl = flashpoint.getPreferences()['fpfssBaseUrl'];
-
-    const fpfss = new fpfssService.FPFSSService(fpfssBaseUrl, cookie);
+    const fpfss = new fpfssService.FPFSSService(fpfssBaseUrl, fpfssToken);
     const response = await fpfss.lookupHash(hash, hashType);
 
     if (response.data.length === 0) {
@@ -177,7 +184,7 @@ async function handleHashLookup(hash: string, hashType: 'MD5' | 'SHA1' | 'SHA256
             `  Game URL: ${fpfssUrl}`;
     }).join('\n-----------------------------\n');
     const message = `Found ${response.data.length} duplicates:\n\n${formattedDuplicates}`;
-    const v = await showMessageBox('Info', message, ['OK', 'Write to log']);
+    const v = await showMessageBox('Info', message, ['OK', 'Copy to log']);
     if (v === 1) {
         flashpoint.log.info(message);
     }
